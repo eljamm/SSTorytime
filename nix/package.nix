@@ -51,13 +51,18 @@ buildGoModule (finalAttrs: {
   ];
 
   env = {
-    DBHOST = "/var/run/postgresql";
     PGDATABASE = "sstoryline";
     PGUSER = "sstoryline";
   };
 
+  postgresqlTestSetupPost = ''
+    export POSTGRESQL_URI="postgresql://$PGUSER/$PGDATABASE?host=$PGHOST"
+  '';
+
   checkPhase = ''
     runHook preCheck
+
+    echo "(debug)POSTGRESQL_URI=$POSTGRESQL_URI"
 
     pushd ../tests
       make test
