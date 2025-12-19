@@ -55,10 +55,6 @@ buildGoModule (finalAttrs: {
     PGUSER = "sstoryline";
   };
 
-  postgresqlTestSetupPost = ''
-    export POSTGRESQL_URI="postgresql://$PGUSER/$PGDATABASE?sslmode=disable&host=$PGHOST"
-  '';
-
   checkPhase = ''
     runHook preCheck
 
