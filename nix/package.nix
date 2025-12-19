@@ -56,7 +56,7 @@ buildGoModule (finalAttrs: {
   };
 
   postgresqlTestSetupPost = ''
-    export POSTGRESQL_URI="postgresql://$PGUSER/$PGDATABASE?host=$PGHOST"
+    export POSTGRESQL_URI="postgresql://$PGUSER/$PGDATABASE?sslmode=disable&host=$PGHOST"
   '';
 
   checkPhase = ''

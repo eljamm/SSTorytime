@@ -14,8 +14,6 @@ let
     ;
 
   cfg = config.services.sstorytime;
-
-  dbName = "sstoryline";
   localDB = cfg.database.createLocally;
 in
 {
@@ -95,6 +93,8 @@ in
       description = "SSTorytime Server";
       serviceConfig = {
         DynamicUser = true;
+        User = "sstoryline";
+        Group = "sstoryline";
         Restart = "on-failure";
         RestartSec = 5;
         ExecStart = ''
@@ -103,7 +103,7 @@ in
       };
       environment = {
         SST_SERVER_PORT = toString cfg.port;
-        POSTGRESQL_URI = with cfg.database; "postgresql://${user}@${host}/${dbname}?sslmode=disable";
+        POSTGRESQL_URI = with cfg.database; "postgresql://${user}/${dbname}?sslmode=disable&host=${host}";
       };
       unitConfig = {
         StartLimitBurst = 5;
@@ -126,11 +126,11 @@ in
       enable = true;
       ensureUsers = [
         {
-          name = dbName;
+          name = "sstorytime";
           ensureDBOwnership = true;
         }
       ];
-      ensureDatabases = [ dbName ];
+      ensureDatabases = [ "sstorytime" ];
     };
   };
 }
