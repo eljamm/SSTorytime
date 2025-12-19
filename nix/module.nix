@@ -46,7 +46,7 @@ in
 
       host = mkOption {
         type = types.str;
-        default = "/var/run/postgresql";
+        default = "/run/postgresql";
         example = "192.168.23.42";
         description = "Database host address or unix socket.";
       };
@@ -101,7 +101,7 @@ in
       };
       environment = {
         SST_SERVER_PORT = toString cfg.port;
-        POSTGRESQL_URI = with cfg.database; "postgresql://${user}/${dbname}?sslmode=disable&host=${host}";
+        POSTGRESQL_URI = with cfg.database; "user=${user} dbname=${dbname} sslmode=disable host=${host}";
       };
       unitConfig = {
         StartLimitBurst = 5;
