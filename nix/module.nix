@@ -64,13 +64,13 @@ in
 
       dbname = mkOption {
         type = types.str;
-        default = "sstoryline";
+        default = "sstorytime";
         description = "Database name.";
       };
 
       user = mkOption {
         type = types.str;
-        default = "sstoryline";
+        default = "sstorytime";
         description = "Database user.";
       };
 
@@ -93,8 +93,6 @@ in
       description = "SSTorytime Server";
       serviceConfig = {
         DynamicUser = true;
-        User = "sstoryline";
-        Group = "sstoryline";
         Restart = "on-failure";
         RestartSec = 5;
         ExecStart = ''
