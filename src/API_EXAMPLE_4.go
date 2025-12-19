@@ -11,30 +11,30 @@ package main
 
 import (
 	"fmt"
-        SST "SSTorytime"
+
+	SST "SSTorytime"
 )
 
 //******************************************************************
 
 func main() {
-
 	load_arrows := true
 	sst := SST.Open(load_arrows)
 
 	// Contra colliding wavefronts as path integral solver
 
-	const branching_limit = 2;
+	const branching_limit = 2
 	const maxdepth = 7
-	var ldepth,rdepth int = 2,2
-	var Lnum,Rnum int
+	var ldepth, rdepth int = 2, 2
+	var Lnum, Rnum int
 	var count int
 	var left_paths, right_paths [][]SST.Link
 
 	start_bc := "A1"
 	end_bc := "B6"
 
-	leftptrs := SST.GetDBNodePtrMatchingName(sst,start_bc,"")
-	rightptrs := SST.GetDBNodePtrMatchingName(sst,end_bc,"")
+	leftptrs := SST.GetDBNodePtrMatchingName(sst, start_bc, "")
+	rightptrs := SST.GetDBNodePtrMatchingName(sst, end_bc, "")
 
 	if leftptrs == nil || rightptrs == nil {
 		fmt.Println("No paths available from end points")
@@ -43,18 +43,48 @@ func main() {
 
 	for turn := 0; ldepth < maxdepth && rdepth < maxdepth; turn++ {
 
-		left_paths,Lnum = SST.GetEntireConePathsAsLinks(sst,"any",leftptrs[0],ldepth,branching_limit)
-		right_paths,Rnum = SST.GetEntireConePathsAsLinks(sst,"any",rightptrs[0],rdepth,branching_limit)
-		
-		solutions,loop_corrections := SST.WaveFrontsOverlap(sst,left_paths,right_paths,Lnum,Rnum,ldepth,rdepth)
+		left_paths, Lnum = SST.GetEntireConePathsAsLinks(
+			sst,
+			"any",
+			leftptrs[0],
+			ldepth,
+			branching_limit,
+		)
+		right_paths, Rnum = SST.GetEntireConePathsAsLinks(
+			sst,
+			"any",
+			rightptrs[0],
+			rdepth,
+			branching_limit,
+		)
+
+		solutions, loop_corrections := SST.WaveFrontsOverlap(
+			sst,
+			left_paths,
+			right_paths,
+			Lnum,
+			Rnum,
+			ldepth,
+			rdepth,
+		)
 
 		if len(solutions) > 0 {
 			fmt.Println("-- T R E E ----------------------------------")
-			fmt.Println("Path solution",count,"from",start_bc,"to",end_bc,"with lengths",ldepth,-rdepth)
+			fmt.Println(
+				"Path solution",
+				count,
+				"from",
+				start_bc,
+				"to",
+				end_bc,
+				"with lengths",
+				ldepth,
+				-rdepth,
+			)
 
 			for s := 0; s < len(solutions); s++ {
-				prefix := fmt.Sprintf(" - story %d: ",s)
-				SST.PrintLinkPath(sst,solutions,s,prefix,"",nil)
+				prefix := fmt.Sprintf(" - story %d: ", s)
+				SST.PrintLinkPath(sst, solutions, s, prefix, "", nil)
 			}
 			count++
 			fmt.Println("-------------------------------------------")
@@ -62,26 +92,30 @@ func main() {
 
 		if len(loop_corrections) > 0 {
 			fmt.Println("++ L O O P S +++++++++++++++++++++++++++++++")
-			fmt.Println("Path solution",count,"from",start_bc,"to",end_bc,"with lengths",ldepth,-rdepth)
+			fmt.Println(
+				"Path solution",
+				count,
+				"from",
+				start_bc,
+				"to",
+				end_bc,
+				"with lengths",
+				ldepth,
+				-rdepth,
+			)
 
 			for s := 0; s < len(loop_corrections); s++ {
-				prefix := fmt.Sprintf(" - story %d: ",s)
-				SST.PrintLinkPath(sst,loop_corrections,s,prefix,"",nil)
+				prefix := fmt.Sprintf(" - story %d: ", s)
+				SST.PrintLinkPath(sst, loop_corrections, s, prefix, "", nil)
 			}
 			count++
 			fmt.Println("+++++++++++++++++++++++++++++++++++++++++++")
 		}
 
-		if turn % 2 == 0 {
+		if turn%2 == 0 {
 			ldepth++
 		} else {
 			rdepth++
 		}
 	}
 }
-
-
-
-
-
-

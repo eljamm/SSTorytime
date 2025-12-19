@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	_ "github.com/lib/pq"
-
 )
 
 //******************************************************************
@@ -30,20 +29,17 @@ const (
 //******************************************************************
 
 func main() {
+	connStr := "user=" + user + " dbname=" + dbname + " password=" + password + " sslmode=disable"
 
-        connStr := "user="+user+" dbname="+dbname+" password="+password+" sslmode=disable"
-
-        db, err := sql.Open("postgres", connStr)
-
+	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-	   	fmt.Println("Error connecting to the database: ", err)
+		fmt.Println("Error connecting to the database: ", err)
 		os.Exit(-1)
 	}
-	
+
 	defer db.Close()
-	
+
 	err = db.Ping()
-	
 	if err != nil {
 		fmt.Println("Error pinging the database: ", err)
 		os.Exit(-1)
@@ -51,22 +47,50 @@ func main() {
 
 	fmt.Println("Successfully connected to PostgreSQL!")
 
-	if !CreateTable(db,"Entity(name text, hasfriend text[], employs text[], primary key(name))") {
-	   os.Exit(-1)
+	if !CreateTable(db, "Entity(name text, hasfriend text[], employs text[], primary key(name))") {
+		os.Exit(-1)
 	}
 
-	var friends = make(map[string][]string)
-	var employees = make(map[string][]string)
-	var everyone= make(map[string]int)
+	friends := make(map[string][]string)
+	employees := make(map[string][]string)
+	everyone := make(map[string]int)
 
-	friends["Mark"] = []string{ "Silvy","Mandy","Brent"}
-	friends["Mike"] = []string{"Mark","Jane1","Jane2","Jan","Alfie","Jungi","Peter","Paul"}
-	friends["Jan"] = []string{"Adam","Jane1","Jane"}
-	friends["Adam"] = []string{"Company of Friends","Paul","Matt","Billie","Chirpy Cheep Cheep","Taylor Swallow"}
-	friends["Mandy"] = []string{"Zhao","Doug","Tore","Joyce","Mike","Carol","Ali","Matt","Bjørn","Tamar","Kat","Hans"}
-	friends["Company of Friends"] = []string{"Matt","Jane1"}
+	friends["Mark"] = []string{"Silvy", "Mandy", "Brent"}
+	friends["Mike"] = []string{"Mark", "Jane1", "Jane2", "Jan", "Alfie", "Jungi", "Peter", "Paul"}
+	friends["Jan"] = []string{"Adam", "Jane1", "Jane"}
+	friends["Adam"] = []string{
+		"Company of Friends",
+		"Paul",
+		"Matt",
+		"Billie",
+		"Chirpy Cheep Cheep",
+		"Taylor Swallow",
+	}
+	friends["Mandy"] = []string{
+		"Zhao",
+		"Doug",
+		"Tore",
+		"Joyce",
+		"Mike",
+		"Carol",
+		"Ali",
+		"Matt",
+		"Bjørn",
+		"Tamar",
+		"Kat",
+		"Hans",
+	}
+	friends["Company of Friends"] = []string{"Matt", "Jane1"}
 
-	employees["Company of Friends"] = []string{"Robo1","Robo2","Bot1","Bot2","Bot3","Bot4","Rob1Bot21"}
+	employees["Company of Friends"] = []string{
+		"Robo1",
+		"Robo2",
+		"Bot1",
+		"Bot2",
+		"Bot3",
+		"Bot4",
+		"Rob1Bot21",
+	}
 
 	for entity := range friends {
 		CreateNode(db, entity)
@@ -74,7 +98,7 @@ func main() {
 		for fr := range friends[entity] {
 			CreateNode(db, friends[entity][fr])
 			everyone[friends[entity][fr]]++
-			AppendLink(db,"hasfriend",entity,friends[entity][fr])
+			AppendLink(db, "hasfriend", entity, friends[entity][fr])
 		}
 	}
 
@@ -84,33 +108,30 @@ func main() {
 		for fr := range employees[entity] {
 			CreateNode(db, employees[entity][fr])
 			everyone[employees[entity][fr]]++
-			AppendLink(db,"employs",entity,employees[entity][fr])
+			AppendLink(db, "employs", entity, employees[entity][fr])
 		}
 	}
 
 	centre := "Mark"
 
 	for radius := 1; radius < 10; radius++ {
-		GetFutureCone(db,centre,radius)
+		GetFutureCone(db, centre, radius)
 	}
-
 }
 
 // **************************************************************************
 
-func CreateTable(db *sql.DB,defn string) bool {
+func CreateTable(db *sql.DB, defn string) bool {
+	fmt.Println("Create table from type...")
 
-        fmt.Println("Create table from type...")
-	
-	_,err := db.Query("CREATE TABLE IF NOT EXISTS "+defn)
-	
+	_, err := db.Query("CREATE TABLE IF NOT EXISTS " + defn)
 	if err != nil {
-		s := fmt.Sprintln("Failed to create a table ",err)
-		
-		if strings.Contains(s,"already exists") {
+		s := fmt.Sprintln("Failed to create a table ", err)
+
+		if strings.Contains(s, "already exists") {
 			return true
 		} else {
-			fmt.Println("Y",s)
+			fmt.Println("Y", s)
 			return false
 		}
 	}
@@ -121,40 +142,45 @@ func CreateTable(db *sql.DB,defn string) bool {
 // **************************************************************************
 
 func CreateNode(db *sql.DB, key string) bool {
-
 	var qstr string
 
-	qstr = fmt.Sprintf("INSERT INTO Entity(name) VALUES ( '%s' ) RETURNING name",key)
+	qstr = fmt.Sprintf("INSERT INTO Entity(name) VALUES ( '%s' ) RETURNING name", key)
 
-	_,err := db.Query(qstr)
-
+	_, err := db.Query(qstr)
 	if err != nil {
-		s := fmt.Sprint("Failed to insert",key,err)
-		
-		if strings.Contains(s,"duplicate key") {
+		s := fmt.Sprint("Failed to insert", key, err)
+
+		if strings.Contains(s, "duplicate key") {
 			return true
 		} else {
-			fmt.Println(s,"\n",qstr,err)
+			fmt.Println(s, "\n", qstr, err)
 			return false
 		}
 	}
-	
+
 	return true
 }
 
 // **************************************************************************
 
-func AppendLink(db *sql.DB, arrow,name,fr string) bool {
-
+func AppendLink(db *sql.DB, arrow, name, fr string) bool {
 	// Want to make this idempotent, because SQL is not (and not clause)
 
-	qstr := fmt.Sprintf("update Entity set %s = array_append(%s,'%s') where name = '%s' and (%s is null or not '%s' = ANY(%s))",arrow,arrow,fr,name,arrow,fr,arrow)
+	qstr := fmt.Sprintf(
+		"update Entity set %s = array_append(%s,'%s') where name = '%s' and (%s is null or not '%s' = ANY(%s))",
+		arrow,
+		arrow,
+		fr,
+		name,
+		arrow,
+		fr,
+		arrow,
+	)
 
-	_,err := db.Query(qstr)
-
+	_, err := db.Query(qstr)
 	if err != nil {
-		fmt.Println("Failed to append",err)
-	       return false
+		fmt.Println("Failed to append", err)
+		return false
 	}
 
 	return true
@@ -163,13 +189,11 @@ func AppendLink(db *sql.DB, arrow,name,fr string) bool {
 // **************************************************************************
 
 func GetLinksFromNode(db *sql.DB, key string) []string {
-
-	qstr := fmt.Sprintf("select hasfriend from Entity where name='%s'",key)
+	qstr := fmt.Sprintf("select hasfriend from Entity where name='%s'", key)
 
 	row, err := db.Query(qstr)
-
 	if err != nil {
-		fmt.Println("Error executing query:",qstr,err)
+		fmt.Println("Error executing query:", qstr, err)
 	}
 
 	var whole_array string
@@ -177,9 +201,8 @@ func GetLinksFromNode(db *sql.DB, key string) []string {
 	for row.Next() {
 
 		err = row.Scan(&whole_array)
-
 		if err != nil {
-			fmt.Println("Error scanning row:",qstr,err)
+			fmt.Println("Error scanning row:", qstr, err)
 		}
 	}
 
@@ -189,8 +212,7 @@ func GetLinksFromNode(db *sql.DB, key string) []string {
 // **************************************************************************
 
 func GetFutureCone(db *sql.DB, centre string, radius int) {
-
-	fmt.Println("--- Future cone by layers --- from ",centre,"depth",radius)
+	fmt.Println("--- Future cone by layers --- from ", centre, "depth", radius)
 
 	row, err := db.Query("drop table output") // No error check, if output exists next will fail
 
@@ -202,14 +224,13 @@ func GetFutureCone(db *sql.DB, centre string, radius int) {
 		" UNION "+
 		" SELECT e.name,unnest(e.hasfriend),past||e.name,depth+1 FROM entity e JOIN cone ON e.name = member where (depth < %d and not member = ANY(past)) "+
 		" ) "+
-		" SELECT member,depth,past FROM cone order by depth ;",centre,centre,radius)
-	
-	fmt.Println("EXEC",qstr)
+		" SELECT member,depth,past FROM cone order by depth ;", centre, centre, radius)
+
+	fmt.Println("EXEC", qstr)
 
 	row, err = db.Query(qstr)
-
 	if err != nil {
-		fmt.Println("Error executing query:",qstr,err)
+		fmt.Println("Error executing query:", qstr, err)
 	}
 
 	const maxdepth = 10
@@ -217,29 +238,29 @@ func GetFutureCone(db *sql.DB, centre string, radius int) {
 	var v string
 	var l int
 	var whole_array string
-	var cone = make(map[int][]string,1)
-	var paths = make(map[int][]string,1)
+	cone := make(map[int][]string, 1)
+	paths := make(map[int][]string, 1)
 
-	cone[0] = append(cone[0],centre)
+	cone[0] = append(cone[0], centre)
 
 	for row.Next() {
 
-		err = row.Scan(&v,&l,&whole_array)
+		err = row.Scan(&v, &l, &whole_array)
 
 		if err != nil {
-			fmt.Println("Error scanning row:",qstr,err)
+			fmt.Println("Error scanning row:", qstr, err)
 		} else {
-			_,ok1 := cone[l]
+			_, ok1 := cone[l]
 
 			if !ok1 {
-				cone[l] = make([]string,1)
+				cone[l] = make([]string, 1)
 			}
 
-			if !Already(v,cone) {
-				cone[l] = append(cone[l],v)
+			if !Already(v, cone) {
+				cone[l] = append(cone[l], v)
 			}
 
-			_,ok2 := paths[l]
+			_, ok2 := paths[l]
 
 			if !ok2 {
 				paths[l] = ParseLinkArray(whole_array)
@@ -249,11 +270,11 @@ func GetFutureCone(db *sql.DB, centre string, radius int) {
 	}
 
 	for l := 0; l < len(cone); l++ {
-		fmt.Println("Layer",l,cone[l])
+		fmt.Println("Layer", l, cone[l])
 	}
 
 	for l := 0; l < len(paths); l++ {
-		fmt.Println("Path",l,paths[l])
+		fmt.Println("Path", l, paths[l])
 	}
 
 	fmt.Println()
@@ -261,9 +282,8 @@ func GetFutureCone(db *sql.DB, centre string, radius int) {
 
 // **************************************************************************
 
-func Already (s string, cone map[int][]string) bool {
-
-return false
+func Already(s string, cone map[int][]string) bool {
+	return false
 	for l := range cone {
 		for n := 0; n < len(cone[l]); n++ {
 			if s == cone[l][n] {
@@ -280,28 +300,23 @@ return false
 // **************************************************************************
 
 func ParseLinkArray(whole_array string) []string {
+	// array as {"(1,2,3)","(4,5,6)"}
 
-   // array as {"(1,2,3)","(4,5,6)"}
+	var l []string
 
-      	var l []string
+	whole_array = strings.Replace(whole_array, "{", "", -1)
+	whole_array = strings.Replace(whole_array, "}", "", -1)
+	whole_array = strings.Replace(whole_array, "\",\"", ";", -1)
+	whole_array = strings.Replace(whole_array, "\"", "", -1)
 
-    	whole_array = strings.Replace(whole_array,"{","",-1)
-    	whole_array = strings.Replace(whole_array,"}","",-1)
-	whole_array = strings.Replace(whole_array,"\",\"",";",-1)
-	whole_array = strings.Replace(whole_array,"\"","",-1)
-	
-        items := strings.Split(whole_array,";")
+	items := strings.Split(whole_array, ";")
 
 	for i := range items {
-	    var v string
-	    s := strings.TrimSpace(items[i])
-	    fmt.Sscanf(s,"%s",&v)
-	    l = append(l,v)
-	    }
+		var v string
+		s := strings.TrimSpace(items[i])
+		fmt.Sscanf(s, "%s", &v)
+		l = append(l, v)
+	}
 
 	return l
 }
-
-
-
-

@@ -13,41 +13,38 @@ package main
 import (
 	"fmt"
 
-        SST "SSTorytime"
+	SST "SSTorytime"
 )
 
 //******************************************************************
 
 func main() {
-
 	load_arrows := false
 	sst := SST.Open(load_arrows)
 
-	nodeptrs := SST.GetDBNodePtrMatchingName(sst,"a1","slit")
+	nodeptrs := SST.GetDBNodePtrMatchingName(sst, "a1", "slit")
 
-	fmt.Println("Found",nodeptrs)
+	fmt.Println("Found", nodeptrs)
 
 	for n := range nodeptrs {
 
 		const maxdepth = 5
-		context := []string{"physics","slits"}
+		context := []string{"physics", "slits"}
 		chapter := "slit"
 
 		const limit = 10
-		alt_paths,path_depth := SST.GetEntireConePathsAsLinks(sst,"fwd",nodeptrs[n],maxdepth,limit)
-		
+		alt_paths, path_depth := SST.GetEntireConePathsAsLinks(
+			sst,
+			"fwd",
+			nodeptrs[n],
+			maxdepth,
+			limit,
+		)
+
 		if alt_paths != nil {
-			
 			for p := 0; p < path_depth; p++ {
-				SST.PrintLinkPath(sst,alt_paths,p,"\nStory:",chapter,context)
+				SST.PrintLinkPath(sst, alt_paths, p, "\nStory:", chapter, context)
 			}
 		}
 	}
 }
-
-
-
-
-
-
-

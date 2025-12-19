@@ -7,9 +7,10 @@ package main
 
 import (
 	"fmt"
-	"sort"
 	"math"
-        SST "SSTorytime"
+	"sort"
+
+	SST "SSTorytime"
 )
 
 /*  GNUPLOT
@@ -28,7 +29,7 @@ set title "Convergence to Stability"
 set term pdf monochrome
 set output "converge_intentionalities1.pdf"
 set key outside vertical top right
-plot "converge.in1" using 1:2 w line title "Moby Dick", "converge.in1" using 1:3 w line title "Obama", "converge.in1" using 1:4 w line title "Venerable Bede", "converge.in1" using 1:5 w line title "Promises", "converge.in1" using 1:6 w line title "Darwin", "converge.in1" using 1:7 w line title "Notes"   
+plot "converge.in1" using 1:2 w line title "Moby Dick", "converge.in1" using 1:3 w line title "Obama", "converge.in1" using 1:4 w line title "Venerable Bede", "converge.in1" using 1:5 w line title "Promises", "converge.in1" using 1:6 w line title "Darwin", "converge.in1" using 1:7 w line title "Notes"
 
 set xlabel "Fraction of whole"
 set ylabel "Stability"
@@ -44,7 +45,7 @@ set title "Convergence to Stability"
 set term pdf monochrome
 set output "converge_intentionalities2.pdf"
 set key outside vertical top right
-plot "converge.in2" using 1:2 w line title "Moby Dick", "converge.in2" using 1:3 w line title "Obama", "converge.in2" using 1:4 w line title "Venerable Bede", "converge.in2" using 1:5 w line title "Promises", "converge.in2" using 1:6 w line title "Darwin", "converge.in2" using 1:7 w line title "Notes"   
+plot "converge.in2" using 1:2 w line title "Moby Dick", "converge.in2" using 1:3 w line title "Obama", "converge.in2" using 1:4 w line title "Venerable Bede", "converge.in2" using 1:5 w line title "Promises", "converge.in2" using 1:6 w line title "Darwin", "converge.in2" using 1:7 w line title "Notes"
 
 */
 
@@ -53,7 +54,6 @@ plot "converge.in2" using 1:2 w line title "Moby Dick", "converge.in2" using 1:3
 //**************************************************************
 
 func main() {
-
 	const max_class = 100
 
 	var input [6]string
@@ -70,22 +70,22 @@ func main() {
 	for i := 0; i < 6; i++ {
 		for thresh := 1; thresh <= 9; thresh++ {
 			threshold := 0.1 * float64(thresh)
-			
-			set1 := Test1(input[i],threshold)
-			set2 := Test2(input[i],threshold)
-			
-			var histo = make(map[int]int)
-			
+
+			set1 := Test1(input[i], threshold)
+			set2 := Test2(input[i], threshold)
+
+			histo := make(map[int]int)
+
 			for i := range set1 {
 				histo[set1[i]]++
 			}
-			
+
 			for i := range set1 {
 				histo[set2[i]]++
 			}
-			
-			var histo2 = make(map[int]int)
-			
+
+			histo2 := make(map[int]int)
+
 			for a := range histo {
 				for i := 0; i < 3; i++ {
 					if histo[a] == i {
@@ -93,8 +93,8 @@ func main() {
 					}
 				}
 			}
-			
-			consistency[i][thresh] = float64(100*histo2[2])/float64(histo2[2]+histo2[1]/2)
+
+			consistency[i][thresh] = float64(100*histo2[2]) / float64(histo2[2]+histo2[1]/2)
 		}
 	}
 
@@ -103,36 +103,34 @@ func main() {
 		sum := 0.0
 		dev := 0.0
 
-		fmt.Printf("# %.2f ",0.1*float64(thresh))
+		fmt.Printf("# %.2f ", 0.1*float64(thresh))
 
 		for i := 0; i < 6; i++ {
 
 			sum += consistency[i][thresh]
-			fmt.Printf("%f ",consistency[i][thresh])
+			fmt.Printf("%f ", consistency[i][thresh])
 		}
 
 		fmt.Println()
 
-		mean := sum/6.0
+		mean := sum / 6.0
 
 		for i := 0; i < 6; i++ {
-
-			dev += (consistency[i][thresh]-mean)*(consistency[i][thresh]-mean)
+			dev += (consistency[i][thresh] - mean) * (consistency[i][thresh] - mean)
 		}
 
-		stddev := math.Sqrt(dev/6.0)
+		stddev := math.Sqrt(dev / 6.0)
 
-		fmt.Printf("%.2f %f %f\n",0.1*float64(thresh), mean, stddev)
+		fmt.Printf("%.2f %f %f\n", 0.1*float64(thresh), mean, stddev)
 	}
 }
 
 // ***************************************************
 
-func Test1(input string,threshold float64) []int {
-
+func Test1(input string, threshold float64) []int {
 	SST.MemoryInit()
 
-	psf,_ := SST.FractionateTextFile(input)
+	psf, _ := SST.FractionateTextFile(input)
 
 	// Rank sentences
 
@@ -141,7 +139,6 @@ func Test1(input string,threshold float64) []int {
 	var count int
 
 	for p := range psf {
-
 		for s := range psf[p] {
 
 			score := 0.0
@@ -149,7 +146,7 @@ func Test1(input string,threshold float64) []int {
 
 			for f := 0; f < len(psf[p][s]); f++ {
 
-				score += SST.RunningIntentionality(count,psf[p][s][f])
+				score += SST.RunningIntentionality(count, psf[p][s][f])
 
 				text += psf[p][s][f]
 
@@ -162,7 +159,7 @@ func Test1(input string,threshold float64) []int {
 			this.Fragment = text
 			this.Significance = score
 			this.Order = count
-			sentences = append(sentences,this)
+			sentences = append(sentences, this)
 			count++
 		}
 	}
@@ -177,7 +174,7 @@ func Test1(input string,threshold float64) []int {
 	limit := int(threshold * float64(len(sentences)))
 
 	for i := 0; i < limit; i++ {
-		selections = append(selections,sentences[i])
+		selections = append(selections, sentences[i])
 	}
 
 	sort.Slice(selections, func(i, j int) bool {
@@ -187,17 +184,17 @@ func Test1(input string,threshold float64) []int {
 	// Now print only upper scoring fraction 20%
 
 	for i := 0; i < limit; i++ {
-		fmt.Print(i,"=",selections[i].Order, ": ")
-		SST.ShowText(selections[i].Fragment,100)
+		fmt.Print(i, "=", selections[i].Order, ": ")
+		SST.ShowText(selections[i].Fragment, 100)
 		fmt.Println()
 	}
 
-	fmt.Println("Fraction of document = ",limit,"->", float64(limit)/float64(len(sentences)))
+	fmt.Println("Fraction of document = ", limit, "->", float64(limit)/float64(len(sentences)))
 
 	var vals []int
 
 	for i := 0; i < limit; i++ {
-		vals = append(vals,selections[i].Order)
+		vals = append(vals, selections[i].Order)
 	}
 
 	return vals
@@ -205,12 +202,11 @@ func Test1(input string,threshold float64) []int {
 
 // ***************************************************
 
-func Test2(input string,threshold float64) []int {
-
+func Test2(input string, threshold float64) []int {
 	SST.MemoryInit()
 
-	psf,L := SST.FractionateTextFile(input)
-	
+	psf, L := SST.FractionateTextFile(input)
+
 	// Rank sentences
 
 	var sentences []SST.TextRank
@@ -218,7 +214,6 @@ func Test2(input string,threshold float64) []int {
 	var count int
 
 	for p := range psf {
-
 		for s := range psf[p] {
 
 			score := 0.0
@@ -226,7 +221,7 @@ func Test2(input string,threshold float64) []int {
 
 			for f := 0; f < len(psf[p][s]); f++ {
 
-				score += SST.AssessStaticIntent(psf[p][s][f],L,SST.STM_NGRAM_FREQ,1)
+				score += SST.AssessStaticIntent(psf[p][s][f], L, SST.STM_NGRAM_FREQ, 1)
 
 				text += psf[p][s][f]
 
@@ -239,7 +234,7 @@ func Test2(input string,threshold float64) []int {
 			this.Fragment = text
 			this.Significance = score
 			this.Order = count
-			sentences = append(sentences,this)
+			sentences = append(sentences, this)
 			count++
 		}
 	}
@@ -254,7 +249,7 @@ func Test2(input string,threshold float64) []int {
 	limit := int(threshold * float64(len(sentences)))
 
 	for i := 0; i < limit; i++ {
-		selections = append(selections,sentences[i])
+		selections = append(selections, sentences[i])
 	}
 
 	sort.Slice(selections, func(i, j int) bool {
@@ -264,17 +259,17 @@ func Test2(input string,threshold float64) []int {
 	// Now print only upper scoring fraction 20%
 
 	for i := 0; i < limit; i++ {
-		fmt.Print(i,"=",selections[i].Order, ": ")
-		SST.ShowText(selections[i].Fragment,100)
+		fmt.Print(i, "=", selections[i].Order, ": ")
+		SST.ShowText(selections[i].Fragment, 100)
 		fmt.Println()
 	}
 
-	fmt.Println("Fraction of document = ",limit,"->", float64(limit)/float64(len(sentences)))
+	fmt.Println("Fraction of document = ", limit, "->", float64(limit)/float64(len(sentences)))
 
 	var vals []int
 
 	for i := 0; i < limit; i++ {
-		vals = append(vals,selections[i].Order)
+		vals = append(vals, selections[i].Order)
 	}
 
 	return vals

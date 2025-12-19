@@ -1,13 +1,12 @@
 package main
 
 import (
-        SST "SSTorytime"
 	"fmt"
+
+	SST "SSTorytime"
 )
 
-
 func main() {
-
 	sst := SST.Open(false)
 
 	l := SST.GetLastSawSection(sst)
@@ -17,12 +16,11 @@ func main() {
 	}
 
 	var nptr SST.NodePtr
-	nptr.Class=2;
-	nptr.CPtr=581
+	nptr.Class = 2
+	nptr.CPtr = 581
 
-	x := SST.GetLastSawNPtr(sst,nptr)
-	fmt.Println("X",x)
+	x := SST.GetLastSawNPtr(sst, nptr)
+	fmt.Println("X", x)
 
 	SST.Close(sst)
 }
-

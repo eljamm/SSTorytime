@@ -13,7 +13,8 @@ package main
 import (
 	"fmt"
 	"os"
-        SST "SSTorytime"
+
+	SST "SSTorytime"
 )
 
 var path [8][]string
@@ -21,7 +22,6 @@ var path [8][]string
 //******************************************************************
 
 func main() {
-
 	load_arrows := true
 	sst := SST.Open(load_arrows)
 
@@ -33,19 +33,18 @@ func main() {
 //******************************************************************
 
 func Solve(sst SST.PoSST) {
-
 	// Contra colliding wavefronts as path integral solver
 
 	const maxdepth = 16
-	var ldepth,rdepth int = 1,1
-	var Lnum,Rnum int
+	var ldepth, rdepth int = 1, 1
+	var Lnum, Rnum int
 	var left_paths, right_paths [][]SST.Link
 
 	start_bc := "a7"
 	end_bc := "i6"
 
-	leftptrs := SST.GetDBNodePtrMatchingName(sst,start_bc,"")
-	rightptrs := SST.GetDBNodePtrMatchingName(sst,end_bc,"")
+	leftptrs := SST.GetDBNodePtrMatchingName(sst, start_bc, "")
+	rightptrs := SST.GetDBNodePtrMatchingName(sst, end_bc, "")
 
 	if leftptrs == nil || rightptrs == nil {
 		fmt.Println("No paths available from end points")
@@ -61,33 +60,55 @@ func Solve(sst SST.PoSST) {
 
 	for turn := 0; ldepth < maxdepth && rdepth < maxdepth; turn++ {
 
-		left_paths,Lnum = SST.GetEntireNCConePathsAsLinks(sst,"fwd",leftptrs,ldepth,"",cntx,limit)
-		xleft_paths,Lnumx := SST.GetEntireConePathsAsLinks(sst,"fwd",leftptrs[0],ldepth,limit)
+		left_paths, Lnum = SST.GetEntireNCConePathsAsLinks(
+			sst,
+			"fwd",
+			leftptrs,
+			ldepth,
+			"",
+			cntx,
+			limit,
+		)
+		xleft_paths, Lnumx := SST.GetEntireConePathsAsLinks(sst, "fwd", leftptrs[0], ldepth, limit)
 
-		right_paths,Rnum = SST.GetEntireNCConePathsAsLinks(sst,"bwd",rightptrs,rdepth,"",cntx,limit)
-		xright_paths,Rnumx := SST.GetEntireConePathsAsLinks(sst,"bwd",rightptrs[0],rdepth,limit)	
+		right_paths, Rnum = SST.GetEntireNCConePathsAsLinks(
+			sst,
+			"bwd",
+			rightptrs,
+			rdepth,
+			"",
+			cntx,
+			limit,
+		)
+		xright_paths, Rnumx := SST.GetEntireConePathsAsLinks(
+			sst,
+			"bwd",
+			rightptrs[0],
+			rdepth,
+			limit,
+		)
 
 		if Lnum != Lnumx {
-			fmt.Println("LEFT sizes differ at depth",ldepth,"=",Lnum,Lnumx)
-			fmt.Println("EntireNCcone",left_paths)
-			fmt.Println("Entirecone",xleft_paths)
+			fmt.Println("LEFT sizes differ at depth", ldepth, "=", Lnum, Lnumx)
+			fmt.Println("EntireNCcone", left_paths)
+			fmt.Println("Entirecone", xleft_paths)
 			os.Exit(-1)
 		}
 
-		if Diff(left_paths,xleft_paths) {
-			fmt.Println("LEFT SETS differ at depth",ldepth)
-			fmt.Println("EntireNCcone",left_paths)
-			fmt.Println("Entirecone",xleft_paths)
+		if Diff(left_paths, xleft_paths) {
+			fmt.Println("LEFT SETS differ at depth", ldepth)
+			fmt.Println("EntireNCcone", left_paths)
+			fmt.Println("Entirecone", xleft_paths)
 			os.Exit(-1)
 		}
 
 		if Rnum != Rnumx {
-			fmt.Println("RIGHT sizes differ at depth",rdepth,"=",Rnum,Rnumx)
+			fmt.Println("RIGHT sizes differ at depth", rdepth, "=", Rnum, Rnumx)
 			os.Exit(-1)
 		}
 
-		if Diff(right_paths,xright_paths) {
-			fmt.Println("RIGHT SETS differ at depth",rdepth)
+		if Diff(right_paths, xright_paths) {
+			fmt.Println("RIGHT SETS differ at depth", rdepth)
 			os.Exit(-1)
 		}
 
@@ -98,10 +119,9 @@ func Solve(sst SST.PoSST) {
 
 // **********************************************************
 
-func Diff(left,right [][]SST.Link) bool {
-
-	var L = make(map[SST.Link]bool)
-	var R = make(map[SST.Link]bool)
+func Diff(left, right [][]SST.Link) bool {
+	L := make(map[SST.Link]bool)
+	R := make(map[SST.Link]bool)
 
 	retval := false
 
@@ -119,24 +139,17 @@ func Diff(left,right [][]SST.Link) bool {
 
 	for r := range L {
 		if !R[r] {
-			fmt.Println("L not in R",r)
+			fmt.Println("L not in R", r)
 			retval = true
 		}
 	}
 
 	for l := range R {
 		if !L[l] {
-			fmt.Println("R not in L",l)
+			fmt.Println("R not in L", l)
 			retval = true
 		}
 	}
 
 	return retval
 }
-
-
-
-
-
-
-

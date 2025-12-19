@@ -14,21 +14,18 @@ import (
 //**************************************************************
 
 func main() {
-
 	L := 100 // sentences
 
 	for f := 0; f < 100; f++ {
 
-		I := Intentionality(1,L,f)
-		fmt.Printf("%d %f\n",f,I)
+		I := Intentionality(1, L, f)
+		fmt.Printf("%d %f\n", f, I)
 	}
-
 }
 
 //**************************************************************
 
-func Intentionality(n,L int, freq int) float64 {
-
+func Intentionality(n, L int, freq int) float64 {
 	// Compute the effective intent of a string s at a position count
 	// within a document of many sentences. The weighting due to
 	// inband learning uses an exponential deprecation based on
@@ -39,11 +36,11 @@ func Intentionality(n,L int, freq int) float64 {
 	// measure occurrences relative to total length L in sentences
 
 	phi := float64(freq)
-	phi_0 := float64(L/10)
+	phi_0 := float64(L / 10)
 
 	// How often is too often for a concept? density/efficiency
 
-	const rho = 1.0/20
+	const rho = 1.0 / 20
 
 	crit := phi/phi_0 - rho
 
@@ -51,4 +48,3 @@ func Intentionality(n,L int, freq int) float64 {
 
 	return meaning
 }
-

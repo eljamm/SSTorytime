@@ -9,59 +9,43 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
-	"encoding/json"
 
-
-        SST "SSTorytime"
+	SST "SSTorytime"
 )
 
 //******************************************************************
 
 func main() {
-
 	load_arrows := false
 	sst := SST.Open(load_arrows)
 
 	context := []string{""}
 	arrow := "then"
 
-	Story(sst,"chinese",context,"fox",arrow)
+	Story(sst, "chinese", context, "fox", arrow)
 
 	SST.Close(sst)
 }
 
 //******************************************************************
 
-func Story(sst SST.PoSST, chapter string,context []string,searchtext string,arrname string) {
-
+func Story(sst SST.PoSST, chapter string, context []string, searchtext string, arrname string) {
 	searchtext = strings.TrimSpace(searchtext)
 
 	const limit = 10
-	stories := SST.GetSequenceContainers(sst,arrname,searchtext,chapter,context,limit)
+	stories := SST.GetSequenceContainers(sst, arrname, searchtext, chapter, context, limit)
 
-	//for s := range stories {
+	// for s := range stories {
 
 	if stories == nil {
 		fmt.Println("\nReturned table of contents, no unique story...\n")
 	} else {
-		story,_ := json.Marshal(stories)
+		story, _ := json.Marshal(stories)
 		fmt.Println(string(story))
 	}
 
 	//}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

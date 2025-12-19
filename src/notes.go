@@ -9,11 +9,11 @@
 package main
 
 import (
-	"fmt"
 	"flag"
+	"fmt"
 	"os"
 
-        SST "SSTorytime"
+	SST "SSTorytime"
 )
 
 var PAGENR int = 1
@@ -21,7 +21,6 @@ var PAGENR int = 1
 //******************************************************************
 
 func main() {
-
 	args := Init()
 
 	load_arrows := true
@@ -38,7 +37,7 @@ func main() {
 
 	context := []string{""}
 
-	Page(sst,chapter,context,PAGENR)
+	Page(sst, chapter, context, PAGENR)
 	fmt.Println()
 
 	SST.Close(sst)
@@ -47,7 +46,6 @@ func main() {
 //**************************************************************
 
 func Usage() {
-	
 	fmt.Printf("usage: Notes [chapter or section]\n")
 	flag.PrintDefaults()
 
@@ -57,7 +55,6 @@ func Usage() {
 //**************************************************************
 
 func Init() []string {
-
 	pagePtr := flag.Int("page", 1, "page number for browsing")
 
 	flag.Usage = Usage
@@ -79,17 +76,16 @@ func Init() []string {
 
 //******************************************************************
 
-func Page(sst SST.PoSST,chapter string,context []string,page int) {
-
+func Page(sst SST.PoSST, chapter string, context []string, page int) {
 	var last string
 	var lastc string
 
-	notes := SST.GetDBPageMap(sst,chapter,context,page)
+	notes := SST.GetDBPageMap(sst, chapter, context, page)
 
 	for n := 0; n < len(notes); n++ {
 
 		txtctx := SST.CONTEXT_DIRECTORY[notes[n].Context].Context
-	
+
 		if last != notes[n].Chapter || lastc != txtctx {
 			fmt.Println("\n---------------------------------------------")
 			fmt.Println("\nTitle:", notes[n].Chapter)
@@ -100,23 +96,15 @@ func Page(sst SST.PoSST,chapter string,context []string,page int) {
 		}
 
 		for lnk := 0; lnk < len(notes[n].Path); lnk++ {
-			
-			text := SST.GetDBNodeByNodePtr(sst,notes[n].Path[lnk].Dst)
-			
+
+			text := SST.GetDBNodeByNodePtr(sst, notes[n].Path[lnk].Dst)
+
 			if lnk == 0 {
-				fmt.Print("\n",text.S," ")
+				fmt.Print("\n", text.S, " ")
 			} else {
-				arr := SST.GetDBArrowByPtr(sst,notes[n].Path[lnk].Arr)
-				fmt.Printf("(%s) %s ",arr.Long,text.S)
+				arr := SST.GetDBArrowByPtr(sst, notes[n].Path[lnk].Arr)
+				fmt.Printf("(%s) %s ", arr.Long, text.S)
 			}
 		}
 	}
 }
-
-
-
-
-
-
-
-

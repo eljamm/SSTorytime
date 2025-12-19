@@ -12,7 +12,8 @@ package main
 
 import (
 	"fmt"
-        SST "SSTorytime"
+
+	SST "SSTorytime"
 )
 
 //******************************************************************
@@ -28,23 +29,21 @@ const (
 //******************************************************************
 
 func main() {
-
 	load_arrows := false
 	sst := SST.Open(load_arrows)
 
-	cntx := []string{ "yes", "thank you", "(food)"}
+	cntx := []string{"yes", "thank you", "(food)"}
 	chapter := "chinese"
 	name := "(rou)"
 	limit := 10
-	nptrs := SST.GetDBNodePtrMatchingNCC(sst,name,chapter,cntx,nil,limit)
+	nptrs := SST.GetDBNodePtrMatchingNCC(sst, name, chapter, cntx, nil, limit)
 
-	fmt.Println("\nSearching..in chapter",chapter,"\nin contexts",cntx,"\nfor",name,"\n")
+	fmt.Println("\nSearching..in chapter", chapter, "\nin contexts", cntx, "\nfor", name, "\n")
 
 	for n := range nptrs {
-		node := SST.GetDBNodeByNodePtr(sst,nptrs[n])
-		fmt.Println("Found:",node.S)
+		node := SST.GetDBNodeByNodePtr(sst, nptrs[n])
+		fmt.Println("Found:", node.S)
 	}
 
 	SST.Close(sst)
 }
-

@@ -1,20 +1,17 @@
-
 package main
 
 import (
-	"unicode"
 	"fmt"
-	
+	"unicode"
+
 	"golang.org/x/text/runes"
 	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
 )
 
-
 // ******************************************************
 
 func main() {
-
 	s := "žůžo  ÅåøØææÆÆ Tā pǎole shànglái"
 
 	fmt.Println(Normalize(s))
@@ -23,17 +20,12 @@ func main() {
 // ******************************************************
 
 func Normalize(s string) (string, error) {
+	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
 
-    t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
+	result, _, err := transform.String(t, s)
+	if err != nil {
+		return "", err
+	}
 
-    result, _, err := transform.String(t, s)
-    if err != nil {
-        return "", err
-    }
-
-    return result, nil
+	return result, nil
 }
-
-
-
-

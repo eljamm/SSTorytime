@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	_ "github.com/lib/pq"
-
 )
 
 //******************************************************************
@@ -30,9 +29,9 @@ const (
 //******************************************************************
 
 type Link struct {
-     Weight float64
-     Reln int
-     To   int
+	Weight float64
+	Reln   int
+	To     int
 }
 
 //******************************************************************
@@ -46,22 +45,19 @@ type NodeEventItem struct {
 //******************************************************************
 
 func main() {
-
 	// db, err := sql.Open("postgres", "postgres://sstoryline:sst_1234@localhost:5432/sst?sslmode=disable")
 
-        connStr := "user="+user+" dbname="+dbname+" password="+password+" sslmode=disable"
+	connStr := "user=" + user + " dbname=" + dbname + " password=" + password + " sslmode=disable"
 
-        db, err := sql.Open("postgres", connStr)
-
+	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-	   	fmt.Println("Error connecting to the database: ", err)
+		fmt.Println("Error connecting to the database: ", err)
 		os.Exit(-1)
 	}
-	
+
 	defer db.Close()
-	
+
 	err = db.Ping()
-	
 	if err != nil {
 		fmt.Println("Error pinging the database: ", err)
 		os.Exit(-1)
@@ -69,34 +65,32 @@ func main() {
 
 	fmt.Println("Successfully connected to PostgreSQL!")
 
-	if !CreateType(db,"PGLink AS (weight real, arrow int,dest int)") {
-	   os.Exit(-1)
+	if !CreateType(db, "PGLink AS (weight real, arrow int,dest int)") {
+		os.Exit(-1)
 	}
 
-	if !CreateTable(db,"NodeEventItem(key text, value int, links PGLink [], primary key (key))") {
-	   os.Exit(-1)
+	if !CreateTable(db, "NodeEventItem(key text, value int, links PGLink [], primary key (key))") {
+		os.Exit(-1)
 	}
 
-	var lnk = Link{Weight: 1.2, Reln: 6, To: 5}
-	
+	lnk := Link{Weight: 1.2, Reln: 6, To: 5}
+
 	var links []Link
 
-	links = append(links,lnk)
-	links = append(links,Link{Weight: 99, Reln: 9, To: 9999})
+	links = append(links, lnk)
+	links = append(links, Link{Weight: 99, Reln: 9, To: 9999})
 
-	if !CreateNodeEventItem(db, "ninetynine", 999,links) {
-	   os.Exit(-1)
+	if !CreateNodeEventItem(db, "ninetynine", 999, links) {
+		os.Exit(-1)
 	}
 
-	CreateNodeEventItem(db, "two", 9999,nil)
+	CreateNodeEventItem(db, "two", 9999, nil)
 
-	AppendToLinks(db,"ninetynine",Link{Weight: 1.0, Reln: 2, To: 5456})
-	AppendToLinks(db,"ninetynine",Link{Weight: 1.0, Reln: 2, To: 5456})
-	AppendToLinks(db,"ninetynine",Link{Weight: 1.0, Reln: 2, To: 5456})
-
+	AppendToLinks(db, "ninetynine", Link{Weight: 1.0, Reln: 2, To: 5456})
+	AppendToLinks(db, "ninetynine", Link{Weight: 1.0, Reln: 2, To: 5456})
+	AppendToLinks(db, "ninetynine", Link{Weight: 1.0, Reln: 2, To: 5456})
 
 	records, err := ReadNodeEventItems(db)
-
 	if err != nil {
 		fmt.Println("Error reading records: ", err)
 	}
@@ -104,31 +98,29 @@ func main() {
 	fmt.Println("All records:")
 
 	for _, r := range records {
-		fmt.Println("Key:", r.Key, "Value:", r.Value,r.Links)
+		fmt.Println("Key:", r.Key, "Value:", r.Value, r.Links)
 	}
 
-        somelinks := GetLinksFromNode(db,"ninetynine")
+	somelinks := GetLinksFromNode(db, "ninetynine")
 
 	for l := range somelinks {
-		fmt.Println("  - Node has arrow",somelinks[l])
+		fmt.Println("  - Node has arrow", somelinks[l])
 	}
 }
 
 // **************************************************************************
 
 func CreateType(db *sql.DB, defn string) bool {
+	fmt.Println("Create type ...")
 
-        fmt.Println("Create type ...")
-	
-	_,err := db.Query("CREATE TYPE "+defn)
-
+	_, err := db.Query("CREATE TYPE " + defn)
 	if err != nil {
-		s := fmt.Sprintln("Failed to create datatype PGLink ",err)
-		
-		if strings.Contains(s,"already exists") {
+		s := fmt.Sprintln("Failed to create datatype PGLink ", err)
+
+		if strings.Contains(s, "already exists") {
 			return true
 		} else {
-			fmt.Println("X",s)
+			fmt.Println("X", s)
 			return false
 		}
 
@@ -139,19 +131,17 @@ func CreateType(db *sql.DB, defn string) bool {
 
 // **************************************************************************
 
-func CreateTable(db *sql.DB,defn string) bool {
+func CreateTable(db *sql.DB, defn string) bool {
+	fmt.Println("Create table from type...")
 
-        fmt.Println("Create table from type...")
-	
-	_,err := db.Query("CREATE TABLE IF NOT EXISTS "+defn)
-	
+	_, err := db.Query("CREATE TABLE IF NOT EXISTS " + defn)
 	if err != nil {
-		s := fmt.Sprintln("Failed to create a table of type PGLink ",err)
-		
-		if strings.Contains(s,"already exists") {
+		s := fmt.Sprintln("Failed to create a table of type PGLink ", err)
+
+		if strings.Contains(s, "already exists") {
 			return true
 		} else {
-			fmt.Println("Y",s)
+			fmt.Println("Y", s)
 			return false
 		}
 	}
@@ -161,51 +151,61 @@ func CreateTable(db *sql.DB,defn string) bool {
 
 // **************************************************************************
 
-func CreateNodeEventItem(db *sql.DB, vkey string, vvalue int,array []Link) bool {
-
+func CreateNodeEventItem(db *sql.DB, vkey string, vvalue int, array []Link) bool {
 	var qstr string
 
 	if !IdempotentArray(array) {
-		fmt.Println("The proposed links contain duplicates",array)
+		fmt.Println("The proposed links contain duplicates", array)
 		os.Exit(-1)
 	}
 
 	if array != nil {
 		varray := FormatLinkArray(array)
-		qstr = fmt.Sprintf("INSERT INTO NodeEventItem(key,value,links) VALUES ( '%s', '%d', %s ) RETURNING key",vkey,vvalue,varray)
+		qstr = fmt.Sprintf(
+			"INSERT INTO NodeEventItem(key,value,links) VALUES ( '%s', '%d', %s ) RETURNING key",
+			vkey,
+			vvalue,
+			varray,
+		)
 	} else {
-		qstr = fmt.Sprintf("INSERT INTO NodeEventItem(key,value) VALUES ( '%s', '%d' ) RETURNING key",vkey,vvalue)
+		qstr = fmt.Sprintf("INSERT INTO NodeEventItem(key,value) VALUES ( '%s', '%d' ) RETURNING key", vkey, vvalue)
 	}
 
-	_,err := db.Query(qstr)
-
+	_, err := db.Query(qstr)
 	if err != nil {
-		s := fmt.Sprint("Failed to insert",vkey,vvalue,err)
-		
-		if strings.Contains(s,"duplicate key") {
+		s := fmt.Sprint("Failed to insert", vkey, vvalue, err)
+
+		if strings.Contains(s, "duplicate key") {
 			return true
 		} else {
-			fmt.Println(s,"\n",qstr)
+			fmt.Println(s, "\n", qstr)
 			return false
 		}
 	}
-	
+
 	return true
 }
 
 // **************************************************************************
 
 func AppendToLinks(db *sql.DB, key string, l Link) bool {
-
 	// Want to make this idempotent, because SQL is not (and not clause)
 
-	qstr := fmt.Sprintf("update NodeEventItem set links = array_append(links, '(%f, %d, %d)' ) where key = '%s'and not '(%f, %d, %d)'::PGLink = ANY(links)",l.Weight,l.Reln,l.To,key,l.Weight,l.Reln,l.To)
+	qstr := fmt.Sprintf(
+		"update NodeEventItem set links = array_append(links, '(%f, %d, %d)' ) where key = '%s'and not '(%f, %d, %d)'::PGLink = ANY(links)",
+		l.Weight,
+		l.Reln,
+		l.To,
+		key,
+		l.Weight,
+		l.Reln,
+		l.To,
+	)
 
-	_,err := db.Query(qstr)
-
+	_, err := db.Query(qstr)
 	if err != nil {
-		fmt.Println("Failed to append",err)
-	       return false
+		fmt.Println("Failed to append", err)
+		return false
 	}
 	return true
 }
@@ -213,11 +213,9 @@ func AppendToLinks(db *sql.DB, key string, l Link) bool {
 // **************************************************************************
 
 func ReadNodeEventItems(db *sql.DB) ([]NodeEventItem, error) {
-
 	var node NodeEventItem
 
 	rows, err := db.Query("SELECT key,value,links FROM NodeEventItem")
-
 	if err != nil {
 		fmt.Println("Error executing query: ", err)
 	}
@@ -228,17 +226,17 @@ func ReadNodeEventItems(db *sql.DB) ([]NodeEventItem, error) {
 
 	for rows.Next() {
 
-                // pq can't handle postgres arrays, so we have to
-	    	var whole_array string
-		
-		err := rows.Scan(&node.Key,&node.Value,&whole_array)
+		// pq can't handle postgres arrays, so we have to
+		var whole_array string
 
-                node.Links = ParseLinkArray(whole_array)
-		
+		err := rows.Scan(&node.Key, &node.Value, &whole_array)
+
+		node.Links = ParseLinkArray(whole_array)
+
 		if err != nil {
-		   //fmt.Println("Error: ", err)
+			// fmt.Println("Error: ", err)
 		} else {
-		  records = append(records, node)
+			records = append(records, node)
 		}
 	}
 
@@ -248,13 +246,11 @@ func ReadNodeEventItems(db *sql.DB) ([]NodeEventItem, error) {
 // **************************************************************************
 
 func GetLinksFromNode(db *sql.DB, key string) []Link {
-
-	qstr := fmt.Sprintf("select links from NodeEventItem where key='%s'",key)
+	qstr := fmt.Sprintf("select links from NodeEventItem where key='%s'", key)
 
 	row, err := db.Query(qstr)
-
 	if err != nil {
-		fmt.Println("Error executing query:",qstr,err)
+		fmt.Println("Error executing query:", qstr, err)
 	}
 
 	var whole_array string
@@ -262,9 +258,8 @@ func GetLinksFromNode(db *sql.DB, key string) []Link {
 	for row.Next() {
 
 		err = row.Scan(&whole_array)
-
 		if err != nil {
-			fmt.Println("Error scanning row:",qstr,err)
+			fmt.Println("Error scanning row:", qstr, err)
 		}
 	}
 
@@ -276,24 +271,23 @@ func GetLinksFromNode(db *sql.DB, key string) []Link {
 // **************************************************************************
 
 func ParseLinkArray(whole_array string) []Link {
+	// array as {"(1,2,3)","(4,5,6)"}
 
-   // array as {"(1,2,3)","(4,5,6)"}
+	var l []Link
 
-      	var l []Link
+	whole_array = strings.Replace(whole_array, "{", "", -1)
+	whole_array = strings.Replace(whole_array, "}", "", -1)
+	whole_array = strings.Replace(whole_array, "\",\"", ";", -1)
+	whole_array = strings.Replace(whole_array, "\"", "", -1)
 
-    	whole_array = strings.Replace(whole_array,"{","",-1)
-    	whole_array = strings.Replace(whole_array,"}","",-1)
-	whole_array = strings.Replace(whole_array,"\",\"",";",-1)
-	whole_array = strings.Replace(whole_array,"\"","",-1)
-	
-        items := strings.Split(whole_array,";")
+	items := strings.Split(whole_array, ";")
 
 	for i := range items {
-	    var lnk Link
-	    s := strings.TrimSpace(items[i])
-	    fmt.Sscanf(s,"(%f,%d,%d)",&lnk.Weight,&lnk.Reln,&lnk.To)
-	    l = append(l,lnk)
-	    }
+		var lnk Link
+		s := strings.TrimSpace(items[i])
+		fmt.Sscanf(s, "(%f,%d,%d)", &lnk.Weight, &lnk.Reln, &lnk.To)
+		l = append(l, lnk)
+	}
 
 	return l
 }
@@ -301,21 +295,20 @@ func ParseLinkArray(whole_array string) []Link {
 // **************************************************************************
 
 func FormatLinkArray(array []Link) string {
-
 	// ARRAY ['(1,2,3)' :: Link , '(4,5,6)' :: Link ]  ;
 
-        if len(array) == 0 {
-	   return ""
-        }
+	if len(array) == 0 {
+		return ""
+	}
 
 	var ret string = "ARRAY ["
-	
+
 	for i := 0; i < len(array); i++ {
-	    ret += fmt.Sprintf("'(%f,%d,%d)' :: PGLink ",array[i].Weight,array[i].Reln,array[i].To)
-	    if i < len(array)-1 {
-	    ret += ", "
-	    }
-        }
+		ret += fmt.Sprintf("'(%f,%d,%d)' :: PGLink ", array[i].Weight, array[i].Reln, array[i].To)
+		if i < len(array)-1 {
+			ret += ", "
+		}
+	}
 
 	ret += "]"
 
@@ -325,11 +318,10 @@ func FormatLinkArray(array []Link) string {
 // **************************************************************************
 
 func IdempotentArray(array []Link) bool {
-
-	var check = make(map[string]int)
+	check := make(map[string]int)
 
 	for i := 0; i < len(array); i++ {
-		s := fmt.Sprintf("(%f,%d,%d)",array[i].Weight,array[i].Reln,array[i].To)
+		s := fmt.Sprintf("(%f,%d,%d)", array[i].Weight, array[i].Reln, array[i].To)
 		check[s]++
 	}
 
@@ -340,9 +332,3 @@ func IdempotentArray(array []Link) bool {
 	}
 	return true
 }
-
-
-
-
-
-
