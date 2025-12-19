@@ -17,6 +17,10 @@
         ];
 
         config.services.sstorytime.package = sstorytime;
+
+        # install sstorytime programs in system
+        config.environment.variables.SST_CONFIG_PATH = "${sstorytime}/share/config/SSTconfig";
+        config.environment.systemPackages = [ sstorytime ];
       };
   };
 
