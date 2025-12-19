@@ -506,6 +506,7 @@ func Open(load_arrows bool) PoSST {
 	// export POSTGRESQL_URI=postgresql://sstoryline:sst1234@localhost:5432/sstoryline?sslmode=disable
 
 	env := os.Getenv("POSTGRESQL_URI")
+	fmt.Fprintf(os.Stderr, "DEBUGPRINT[408]: SSTorytime.go:508: env=%+v\n", env)
 
 	if len(env) == 0 {
 		sst.DB, err = sql.Open("postgres", connect_str)
